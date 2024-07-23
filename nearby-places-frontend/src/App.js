@@ -1,10 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
-import Home from './Components/Home';
+import React, { useState, useRef, useEffect } from "react";
+import Home from "./Components/Home";
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyCYdIRwmftq5wmWip9k7tWREbhiFqL60A4';
+const GOOGLE_MAPS_API_KEY = "AIzaSyCYdIRwmftq5wmWip9k7tWREbhiFqL60A4";
 
 const App = () => {
-  const [location, setLocation] = useState({ lat: 22.54992, lng: 113.9498, radius: 500 });
+  const [location, setLocation] = useState({
+    lat: 22.54992,
+    lng: 113.9498,
+    radius: 500,
+  });
   const mapRef = useRef(null);
   const infoWindowRef = useRef(null);
   const markerRef = useRef(null);
@@ -16,13 +20,16 @@ const App = () => {
       mapRef.current.setCenter({ lat: newLocation.lat, lng: newLocation.lng });
     }
     if (markerRef.current) {
-      markerRef.current.setPosition({ lat: newLocation.lat, lng: newLocation.lng });
+      markerRef.current.setPosition({
+        lat: newLocation.lat,
+        lng: newLocation.lng,
+      });
     }
   };
 
   useEffect(() => {
     const loadGoogleMapsScript = () => {
-      const script = document.createElement('script');
+      const script = document.createElement("script");
       script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
       script.async = true;
       script.defer = true;
@@ -35,9 +42,10 @@ const App = () => {
     };
 
     const initMap = async () => {
-      const { Map, Marker, InfoWindow, places } = await window.google.maps.importLibrary('places');
+      const { Map, Marker, InfoWindow, places } =
+        await window.google.maps.importLibrary("places");
 
-      const map = new window.google.maps.Map(document.getElementById('map'), {
+      const map = new window.google.maps.Map(document.getElementById("map"), {
         zoom: 13,
         center: { lat: location.lat, lng: location.lng },
       });
@@ -47,22 +55,25 @@ const App = () => {
       const marker = new window.google.maps.Marker({
         position: { lat: location.lat, lng: location.lng },
         map: map,
-        title: 'Selected Location'
+        title: "Selected Location",
+        icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png", // Blue marker
       });
 
       markerRef.current = marker;
 
       const infoWindow = new window.google.maps.InfoWindow({
-        content: 'Click the map to get Lat/Lng!',
+        content: "Click the map to get Lat/Lng!",
         position: { lat: location.lat, lng: location.lng },
       });
 
       infoWindow.open(map);
       infoWindowRef.current = infoWindow;
 
-      placesServiceRef.current = new window.google.maps.places.PlacesService(map);
+      placesServiceRef.current = new window.google.maps.places.PlacesService(
+        map
+      );
 
-      map.addListener('click', async (mapsMouseEvent) => {
+      map.addListener("click", async (mapsMouseEvent) => {
         if (infoWindowRef.current) {
           infoWindowRef.current.close();
         }
@@ -74,17 +85,16 @@ const App = () => {
           markerRef.current.setPosition(newLocation);
         }
 
-
         const request = {
           location: mapsMouseEvent.latLng,
           radius: location.radius,
-          type: ['restaurant'],
+          type: ["restaurant"],
         };
 
         placesServiceRef.current.nearbySearch(request, (results, status) => {
           if (status === window.google.maps.places.PlacesServiceStatus.OK) {
             for (let i = 0; i < results.length; i++) {
-              createMarker(results[i]);
+              createNearbyMarker(results[i]);
             }
           }
         });
@@ -108,22 +118,22 @@ const App = () => {
     }
   }, []);
 
-  const createMarker = (place) => {
+  const createNearbyMarker = (place) => {
     new window.google.maps.Marker({
       position: place.geometry.location,
       map: mapRef.current,
       title: place.name,
+      icon: "http://maps.google.com/mapfiles/ms/icons/red-dot.png", // Red marker
     });
   };
 
   return (
-<div style={{ display: 'flex', height: '100vh' }}>
-<div id="map" style={{ width: '70%', height: '100%' }}></div>
-<div style={{ width: '30%', padding: '10px' }}>
-<Home onLocationChange={handleLocationChange} />
-</div>
-</div>
-);
+    <div>
+      <Home onLocationChange={handleLocationChange} />
+
+      <div id="map" style={{ width: "100%", height: "100%" }}></div>
+    </div>
+  );
 };
 
 export default App;
